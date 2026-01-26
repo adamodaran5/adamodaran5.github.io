@@ -5,26 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ page.title }} - {{ site.name }}</title>
-    <!-- Rolling Headshots -->
-<div class="headshot-container">
-  <div class="headshot-slideshow">
-    <div class="headshot-slide active">
-      <img src="/images/CHINNY.jpg" alt="Ajay Damodaran headshot 1">
-    </div>
-    <div class="headshot-slide">
-      <img src="{{ site.baseurl }}/images/LISTENING.jpg" alt="Ajay Damodaran headshot 2">
-    </div>
-    <div class="headshot-slide">
-      <img src="{{ site.baseurl }}/images/READING.jpg" alt="Ajay Damodaran headshot 3">
-    </div>
-      <div class="headshot-slide">
-      <img src="{{ site.baseurl }}/images/CONFUSED.jpg" alt="Ajay Damodaran headshot 3">
-    </div>
-    <div class="headshot-slide">
-      <img src="{{ site.baseurl }}/images/KICKING.jpg" alt="Ajay Damodaran headshot 4">
-    </div>
-  </div>
-</div>
+
   <style>
     * {
       margin: 0;
@@ -38,29 +19,51 @@
       color: #333;
     }
       
-    /* Hero Banner */
-    .hero-banner {
-      height: 100vh;
-      background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
-                  url('/images/banner1.jpg') center/cover no-repeat;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: white;
-    }
+  <!-- Hero Banner -->
+<div class="hero-banner">
+  <div class="hero-content">
+    <!-- Headshot Slideshow -->
+    <div class="headshot-container">
+      <div class="headshot-slideshow">
+        <div class="headshot-slide active">
+          <img src="/images/CHINNY.jpg" alt="Ajay Damodaran headshot 1">
+        </div>
+        <div class="headshot-slide">
+          <img src="/images/LISTENING.jpg" alt="Ajay Damodaran headshot 2">
+        </div>
+        <div class="headshot-slide">
+          <img src="/images/READING.jpg" alt="Ajay Damodaran headshot 3">
+        </div>
+        <div class="headshot-slide">
+          <img src="/images/CONFUSED.jpg" alt="Ajay Damodaran headshot 4">
+        </div>
+        <div class="headshot-slide">
+          <img src="/images/KICKING.jpg" alt="Ajay Damodaran headshot 5">
+        </div>
+      </div>
+    </div>
+    
+    <h1>Ajay Damodaran</h1>
+    <a href="#shows" class="cta-button">See Upcoming Shows</a>
+  </div>
+</div>
 
-    .hero-content h1 {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-      animation: fadeInUp 1s ease;
-    }
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
 
-    .hero-content p {
-      font-size: 1.5rem;
-      margin-bottom: 2rem;
-      animation: fadeInUp 1s ease 0.3s both;
-    }
+.hero-content h1 {
+  font-size: 4rem;
+  margin: 0;
+  animation: fadeInUp 1s ease 0.6s both;
+}
+
+.hero-content .cta-button {
+  animation: fadeInUp 1s ease 0.8s both;
+}
 
     .cta-button {
       display: inline-block;
@@ -256,14 +259,21 @@
     }
 
     /* Responsive */
-    @media (max-width: 768px) {
-      .hero-content h1 {
-        font-size: 2.5rem;
-      }
-      
-      .hero-content p {
-        font-size: 1.2rem;
-      }
+  @media (max-width: 768px) {
+  .headshot-container {
+    width: 250px;
+    height: 250px;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.5rem;
+  }
+  
+  .hero-content .cta-button {
+    font-size: 1rem;
+    padding: 12px 30px;
+  }
+}
 
       .banner-section h2 {
         font-size: 2rem;
