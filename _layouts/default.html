@@ -75,16 +75,19 @@
     /* Headshot Slideshow Container */
     .headshot-container {
       position: relative;
-      animation: fadeInUp 0s ease 0.4s both;
-      width: 70%;
-      height: 70%;
+      animation: fadeInUp 1s ease 0.4s both;
+      width: 320px;
+      flex-shrink: 0;
     }
 
     .headshot-slideshow {
       position: relative;
+      width: 320px;
+      height: 400px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
+      background: rgba(0,0,0,0.2);
     }
 
     .headshot-slide {
@@ -101,14 +104,12 @@
       opacity: 1;
     }
 
-    .headshot-slide:first-child {
-      position: relative;
-    }
-
     .headshot-slide img {
       display: block;
-      width: 70%;
-      height: auto;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
     }
 
     /* Section Styles */
@@ -268,7 +269,12 @@
       }
       
       .headshot-container {
-        max-width: 90%;
+        width: 260px;
+      }
+
+      .headshot-slideshow {
+        width: 260px;
+        height: 320px;
       }
       
       .hero-content h1 {
@@ -439,7 +445,7 @@
     <div class="container content-section">
       <h2 style="color: #e74c3c;">Get In Touch</h2>
       <p>I'll do your show. Before I can tell you when I see you, you gotta let me know where I gotta go.</p>
-      <a href="mailto:ajaydamodarancomedy@gmail.com" class="cta-button">Contact Me</a>
+      <a href="/cdn-cgi/l/email-protection#95f4fff4ecf1f4f8faf1f4e7f4fbf6faf8f0f1ecd5f2f8f4fcf9bbf6faf8" class="cta-button">Contact Me</a>
     </div>
   </section>
 
@@ -448,7 +454,7 @@
     <p>&copy; 2026 Ajay Damodaran Comedy. All rights reserved.</p>
   </footer>
     
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   let currentSlide = 0;
   const slides = document.querySelectorAll('.headshot-slide');
   const totalSlides = slides.length;
@@ -461,12 +467,4 @@
     currentSlide = (currentSlide + 1) % totalSlides;
     
     // Add active class to new slide
-    slides[currentSlide].classList.add('active');
-  }
-
-  // Change slide every 5 seconds
-  setInterval(showNextSlide, 5000);
-</script>
-    
-</body>
-</html>
+   
