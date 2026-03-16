@@ -14,27 +14,12 @@ description: "I'll tell you when I see you!"
 # URL of your avatar or profile pic (you could use your GitHub profile pic)
 avatar: /images/CHINNY-SMILE.jpg
 
+google_calendar_id: "1c5514b69ae686552dd01662e31e1e921bb5670a74d9c9fafd990fcc14508ee6@group.calendar.google.com"
+google_api_key: "AIzaSyBCP6puMSBaWKkJ7zw55jiH1XWQpAjRhGY"
+
 #
 # Flags below are optional
 #
-
-google_calendar_id: "your-calendar-id@group.calendar.google.com"
-google_api_key: "YOUR_GOOGLE_API_KEY"
-```
-
-**2. `default.html`** — replace the hardcoded `.shows-grid` div and its cards with a JS block that fetches from the Calendar API and builds cards dynamically. The ticket link, venue name, and image would all come from the event's **description field** in Google Calendar (you'd paste structured data there, like `ticket: https://eventbrite.com/...` and `image: /images/venue.jpg`).
-
-**3. A new `_data/shows.yml`** *(optional fallback)* — if you want Jekyll to also be able to render shows server-side (good for SEO), you can mirror your calendar data here manually as a backup.
-
----
-
-**How to set up Google Calendar as your "CMS":**
-
-In each calendar event, use the **description field** as structured data:
-```
-ticket: https://eventbrite.com/e/your-event
-venue_image: /images/lost-church.jpg
-notes: Doors at 7pm, show at 8pm
 
 # Includes an icon in the footer for each username you enter
 footer-links:
@@ -47,7 +32,7 @@ footer-links:
   linkedin: 
   pinterest:
   rss: rss
-  twitter: amit_merchant
+  twitter: shutupajay
   stackoverflow: 
   youtube: # channel/<your_long_string> or user/<user-name>
   googleplus: # anything in your profile username that comes after plus.google.com/
