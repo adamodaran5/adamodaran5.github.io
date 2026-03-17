@@ -682,7 +682,7 @@
     <div class="shows-grid">
 
       <!-- CARD 1 -->
-      <a class="show-card" id="show-link-1" href="#" target="_blank">
+      <a class="show-card" id="show-link-1" href="javascript:void(0)" target="_blank">
         <div class="show-card-image-placeholder">🎤</div>
         <div class="show-card-body">
           <h3 id="show-name-1">Show Name Here</h3>
@@ -694,7 +694,7 @@
       </a>
 
       <!-- CARD 2 -->
-      <a class="show-card" id="show-link-2" href="#" target="_blank">
+      <a class="show-card" id="show-link-2" href="javascript:void(0)" target="_blank">
         <div class="show-card-image-placeholder">🎤</div>
         <div class="show-card-body">
           <h3 id="show-name-2">Show Name Here</h3>
@@ -706,7 +706,7 @@
       </a>
 
       <!-- CARD 3 -->
-      <a class="show-card" id="show-link-3" href="#" target="_blank">
+      <a class="show-card" id="show-link-3" href="javascript:void(0)" target="_blank">
         <div class="show-card-image-placeholder">🎤</div>
         <div class="show-card-body">
           <h3 id="show-name-3">Show Name Here</h3>
@@ -718,7 +718,7 @@
       </a>
 
       <!-- CARD 4 -->
-      <a class="show-card" id="show-link-4" href="#" target="_blank">
+      <a class="show-card" id="show-link-4" href="javascript:void(0)" target="_blank">
         <div class="show-card-image-placeholder">🎤</div>
         <div class="show-card-body">
           <h3 id="show-name-4">Show Name Here</h3>
@@ -786,11 +786,13 @@
         if (venueEl) venueEl.textContent = event.location || 'Venue TBA';
 
         if (linkEl && ticket) {
-          linkEl.href = ticket;
-        } else if (linkEl) {
-          linkEl.style.cursor = 'default';
-        }
-      });
+  linkEl.href = ticket;
+  linkEl.style.cursor = 'pointer';
+} else if (linkEl) {
+  linkEl.removeAttribute('href');
+  linkEl.style.cursor = 'default';
+  linkEl.style.pointerEvents = 'none';
+}
 
     } catch (err) {
       console.error('Could not load shows:', err);
