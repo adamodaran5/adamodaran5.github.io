@@ -6,6 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ page.title }} - {{ site.name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
@@ -17,11 +18,11 @@
       box-sizing: border-box;
     }
 
-   .audiowide-regular {
-  font-family: "Audiowide", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
+    body {
+      font-family: 'Audiowide', sans-serif;
+      line-height: 1.7;
+      color: #333;
+    }
 
 
     /* Navbar */
@@ -42,10 +43,10 @@
 
     .navbar-brand {
       color: white;
-      font-size: 1.1rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      font-weight: 400;
       text-decoration: none;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
     }
 
     .navbar-links {
@@ -58,9 +59,9 @@
     .navbar-links a {
       color: rgba(255,255,255,0.85);
       text-decoration: none;
-      font-size: 0.95rem;
-      font-weight: 500;
-      letter-spacing: 0.03em;
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
       transition: color 0.2s ease;
     }
 
@@ -112,7 +113,7 @@
     }
 
     .hero-content h1 {
-      font-size: 4rem;
+      font-size: 3.2rem;
       margin: 0;
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
@@ -125,12 +126,13 @@
 
     .cta-button {
       display: inline-block;
-      padding: 15px 40px;
+      padding: 14px 36px;
       background: #f97316;
       color: white;
       text-decoration: none;
       border-radius: 50px;
-      font-size: 1.2rem;
+      font-size: 0.95rem;
+      font-family: 'Audiowide', sans-serif;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
@@ -238,7 +240,7 @@
     .banner-section h2 {
       position: relative;
       color: white;
-      font-size: 3rem;
+      font-size: 2.2rem;
       z-index: 1;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     }
@@ -268,7 +270,7 @@
 
     .content-section h2 {
       font-size: 2.5rem;
-      margin-bottom: 2rem;
+      margin-bottom: 0.2rem;
       color: #f97316;
     }
 
@@ -424,10 +426,10 @@
 
     .show-card-body h3 {
       color: #1a365d;
-      font-size: 1.25rem;
-      font-weight: 700;
+      font-size: 1.05rem;
+      font-weight: 400;
       margin-bottom: 4px;
-      line-height: 1.3;
+      line-height: 1.4;
     }
 
     .show-card-meta {
@@ -437,7 +439,7 @@
     }
 
     .show-card-meta span {
-      font-size: 0.92rem;
+      font-size: 0.78rem;
       color: #555;
       display: flex;
       align-items: flex-start;
@@ -602,7 +604,7 @@
       }
       
       .hero-content h1 {
-        font-size: 2.5rem;
+        font-size: 2rem;
       }
       
       .hero-content .cta-button {
@@ -829,9 +831,9 @@
 </script>
 
   <!-- Contact Section -->
-  <section class="section-dark" style="background: #fec817;">
+  <section class="section-dark" style="background: #fec817; min-height: unset; padding: 50px 20px;">
     <div class="container content-section">
-      <h2 style="color: #1a4971;">Get In Touch</h2>
+      <h2 style="color: #1a4971; margin-bottom: 0.5rem;">Get In Touch</h2>
       <p>Want me to do your show. Before I can tell you when I see you, you gotta let me know where I gotta go.</p>
       <a href="/cdn-cgi/l/email-protection#95f4fff4ecf1f4f8faf1f4e7f4fbf6faf8f0f1ecd5f2f8f4fcf9bbf6faf8" class="cta-button">Email Me</a>
     </div>
