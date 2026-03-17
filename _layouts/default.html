@@ -796,39 +796,30 @@
   }
 
   async function fetchImageForEvent(title, venue) {
-    // Try Wikipedia for the venue first, then the event title
-    const queries = [venue, title].filter(Boolean);
-    for (const q of queries) {
-      try {
-        const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(q)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
-        const res = await fetch(url);
-        const data = await res.json();
-        const pages = data.query?.pages;
-        if (pages) {
-          const page = Object.values(pages)[0];
-          if (page?.thumbnail?.source) return page.thumbnail.source;
-        }
-      } catch(e) {}
-    }
-    // Fallback: Wikipedia search for the venue/title
+    // ---------------------------------------------------------------
+    // GOOGLE CUSTOM SEARCH API — IMAGE SEARCH
+    // To activate:
+    //   1. Go to https://console.cloud.google.com → Enable "Custom Search API"
+    //   2. Get your API key and paste it as GOOGLE_IMAGE_API_KEY below
+    //   3. Go to https://programmablesearchengine.google.com → Create engine
+    //      → Enable "Image search" → Copy the Search engine ID (cx)
+    //      → Paste it as GOOGLE_CSE_ID below
+    // ---------------------------------------------------------------
+    const GOOGLE_IMAGE_API_KEY = "YOUR_GOOGLE_IMAGE_API_KEY_HERE";
+    const GOOGLE_CSE_ID        = "YOUR_CUSTOM_SEARCH_ENGINE_ID_HERE";
+
+    if (GOOGLE_IMAGE_API_KEY === "YOUR_GOOGLE_IMAGE_API_KEY_HERE") return null;
+
     try {
-      const searchQ = encodeURIComponent((venue || title).split(',')[0]);
-      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${searchQ}&prop=pageimages&format=json&origin=*&srlimit=1`;
-      const sRes = await fetch(searchUrl);
-      const sData = await sRes.json();
-      const firstResult = sData.query?.search?.[0];
-      if (firstResult) {
-        const imgUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(firstResult.title)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
-        const iRes = await fetch(imgUrl);
-        const iData = await iRes.json();
-        const pages = iData.query?.pages;
-        if (pages) {
-          const page = Object.values(pages)[0];
-          if (page?.thumbnail?.source) return page.thumbnail.source;
-        }
-      }
-    } catch(e) {}
-    return null;
+      const query = encodeURIComponent(`${title}${venue ? ' ' + venue : ''}`);
+      const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_IMAGE_API_KEY}&cx=${GOOGLE_CSE_ID}&searchType=image&q=${query}&num=1&safe=active`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.items?.[0]?.link || null;
+    } catch (e) {
+      console.error('Image search failed:', e);
+      return null;
+    }
   }
 
   async function fillShowCards() {
@@ -891,7 +882,7 @@
     }
   }
 
-  fillShowCards();
+fillShowCards();
 </script>
 
   <!-- Contact Section -->
@@ -899,7 +890,7 @@
     <div class="container content-section">
       <h2 style="color: #1a4971; margin-bottom: 0.5rem;">Get In Touch</h2>
       <p>Want me to do your show? Me too! Hit me up and let's work it out.</p>
-      <a href="/contact.html" class="cta-button" style="background:#1a4971;">Email Me</a>
+      <a href="{{ site.baseurl }}/contact.html" class="cta-button" style="background:#1a4971;">Email Me</a>
     </div>
   </section>
 
