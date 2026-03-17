@@ -797,7 +797,7 @@
 
   async function fetchImageForEvent(title, venue) {
     try {
-      const query = `${title}${venue ? ' ' + venue : ''} comedy show`;
+      const query = `${title}${venue ? ' ' + venue : ''}`;
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -883,7 +883,7 @@
   <section class="section-dark" style="background: #fec817; min-height: unset; padding: 50px 20px;">
     <div class="container content-section">
       <h2 style="color: #1a4971; margin-bottom: 0.5rem;">Get In Touch</h2>
-      <p>Want me to do your show. Before I can tell you when I see you, you gotta let me know where I gotta go.</p>
+      <p>Want me to do your show? Me too! Hit me up and let's work it out.</p>
       <a href="/cdn-cgi/l/email-protection#95f4fff4ecf1f4f8faf1f4e7f4fbf6faf8f0f1ecd5f2f8f4fcf9bbf6faf8" class="cta-button">Email Me</a>
     </div>
   </section>
@@ -904,5 +904,5 @@
     slides[currentSlide].classList.add('active');
   }
 
-  setInterval(showNextSlide, 5000);
+  setInterval(showNextSlide, 4000);
 </script>
