@@ -771,7 +771,12 @@
 
 <script>
   const CALENDAR_ID = "1c5514b69ae686552dd01662e31e1e921bb5670a74d9c9fafd990fcc14508ee6@group.calendar.google.com";
-  const API_KEY = "AIzaSyBCP6puMSBaWKkJ7zw55jiH1XWQpAjRhGY";
+  const API_KEY     = "AIzaSyBCP6puMSBaWKkJ7zw55jiH1XWQpAjRhGY";
+
+  // ── Google Custom Search keys ──────────────────────────────────────
+  const GOOGLE_IMAGE_API_KEY = "AIzaSyCFI5ByDgkagAOPiePjuiIot-Qjn_3pieI";
+  const GOOGLE_CSE_ID        = "0710eb5fea16047be";
+  // ──────────────────────────────────────────────────────────────────
 
   function parseDescription(desc) {
     const fields = { ticket: null, image: null };
@@ -795,91 +800,89 @@
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
   }
 
-  async function fetchImageForEvent(title, venue) {
-    // ---------------------------------------------------------------
-    // GOOGLE CUSTOM SEARCH API — IMAGE SEARCH
-    // Keys are set below — replace with new keys if needed.
-    // To get new keys:
-    //   1. https://console.cloud.google.com → Enable "Custom Search API" → Create API key
-    //   2. https://programmablesearchengine.google.com → Create engine
-    //      → Enable "Image search" → Copy the Search engine ID (cx)
-    // ---------------------------------------------------------------
-    const GOOGLE_IMAGE_API_KEY = "AIzaSyCFI5ByDgkagAOPiePjuiIot-Qjn_3pieI";
-    const GOOGLE_CSE_ID        = "0710eb5fea16047be";
-
+  // Image fetch is completely isolated — any failure returns null silently
+  async function fetchImage(title, venueName) {
     try {
-      const query = encodeURIComponent(`${title}${venue ? ' ' + venue : ''}`);
-      const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_IMAGE_API_KEY}&cx=${GOOGLE_CSE_ID}&searchType=image&q=${query}&num=1&safe=active`;
-      const res = await fetch(url);
-      const data = await res.json();
-      return data.items?.[0]?.link || null;
-    } catch (e) {
-      console.error('Image search failed:', e);
+      const q   = encodeURIComponent(`${title}${venueName ? ' ' + venueName : ''}`);
+      const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_IMAGE_API_KEY}&cx=${GOOGLE_CSE_ID}&searchType=image&q=${q}&num=1&safe=active`;
+      const res  = await fetch(url);
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json.items?.[0]?.link || null;
+    } catch (_) {
       return null;
     }
   }
 
-  async function fillShowCards() {
-    const now = new Date().toISOString();
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&orderBy=startTime&singleEvents=true&maxResults=4`;
-
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      if (!data.items) return;
-
-      data.items.forEach((event, i) => {
-        const num = i + 1;
-        const linkEl        = document.getElementById(`show-link-${num}`);
-        const nameEl        = document.getElementById(`show-name-${num}`);
-        const dateEl        = document.getElementById(`show-date-${num}`);
-        const venueEl       = document.getElementById(`show-venue-${num}`);
-        const imgEl         = document.getElementById(`show-img-${num}`);
-        const placeholderEl = document.getElementById(`show-placeholder-${num}`);
-        const { ticket, image } = parseDescription(event.description);
-        const venue = event.location || '';
-
-        if (nameEl)  nameEl.textContent  = event.summary || 'TBA';
-        if (dateEl)  dateEl.textContent  = formatDateTime(event.start.dateTime || event.start.date);
-        if (venueEl) venueEl.textContent = venue || 'Venue TBA';
-
-        // Ticket link
-        if (linkEl && ticket) {
-          linkEl.href = ticket;
-          linkEl.style.cursor = 'pointer';
-        } else if (linkEl) {
-          linkEl.removeAttribute('href');
-          linkEl.style.cursor = 'default';
-          linkEl.style.pointerEvents = 'none';
-        }
-
-        // Apply image, replacing placeholder when ready
-        const applyImage = (src) => {
-          if (!src || !imgEl) return;
-          imgEl.onload = () => {
-            imgEl.style.display = 'block';
-            if (placeholderEl) placeholderEl.style.display = 'none';
-          };
-          imgEl.onerror = () => {
-            imgEl.style.display = 'none';
-            if (placeholderEl) placeholderEl.style.display = 'flex';
-          };
-          imgEl.src = src;
-        };
-
-        if (image) {
-          applyImage(image);
-        } else {
-          fetchImageForEvent(event.summary, venue).then(applyImage);
-        }
-      });
-
-    } catch (err) {
-      console.error('Could not load shows:', err);
-    }
+  // Apply an image to a card — completely separate from calendar logic
+  function applyImage(num, src) {
+    if (!src) return;
+    const imgEl  = document.getElementById(`show-img-${num}`);
+    const phEl   = document.getElementById(`show-placeholder-${num}`);
+    if (!imgEl) return;
+    imgEl.onload  = () => { imgEl.style.display = 'block'; if (phEl) phEl.style.display = 'none'; };
+    imgEl.onerror = () => { imgEl.style.display = 'none';  if (phEl) phEl.style.display = 'flex'; };
+    imgEl.src = src;
   }
 
-fillShowCards();
+  // ── STEP 1: populate card text immediately ─────────────────────────
+  // ── STEP 2: fetch images independently after text is shown ─────────
+  async function fillShowCards() {
+    const now = new Date().toISOString();
+    const calUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&orderBy=startTime&singleEvents=true&maxResults=4`;
+
+    let events = [];
+    try {
+      const res  = await fetch(calUrl);
+      const json = await res.json();
+      if (Array.isArray(json.items)) events = json.items;
+    } catch (err) {
+      console.error('Calendar fetch failed:', err);
+      return; // placeholders stay visible — nothing to show
+    }
+
+    // ── STEP 1: fill all text fields synchronously ──────────────────
+    events.forEach((event, i) => {
+      const num     = i + 1;
+      const linkEl  = document.getElementById(`show-link-${num}`);
+      const nameEl  = document.getElementById(`show-name-${num}`);
+      const dateEl  = document.getElementById(`show-date-${num}`);
+      const venueEl = document.getElementById(`show-venue-${num}`);
+      const { ticket } = parseDescription(event.description);
+      const venue = event.location || '';
+
+      if (nameEl)  nameEl.textContent  = event.summary || 'TBA';
+      if (dateEl)  dateEl.textContent  = formatDateTime(event.start.dateTime || event.start.date);
+      if (venueEl) venueEl.textContent = venue || 'Venue TBA';
+
+      if (linkEl) {
+        if (ticket) {
+          linkEl.href             = ticket;
+          linkEl.style.cursor     = 'pointer';
+          linkEl.style.pointerEvents = 'auto';
+        } else {
+          linkEl.removeAttribute('href');
+          linkEl.style.cursor     = 'default';
+          linkEl.style.pointerEvents = 'none';
+        }
+      }
+    });
+
+    // ── STEP 2: fetch images independently — never blocks text above ─
+    events.forEach((event, i) => {
+      const num = i + 1;
+      const { image } = parseDescription(event.description);
+      const venue = event.location || '';
+
+      if (image) {
+        applyImage(num, image);
+      } else {
+        fetchImage(event.summary, venue).then(src => applyImage(num, src));
+      }
+    });
+  }
+
+  fillShowCards();
 </script>
 
   <!-- Contact Section -->
