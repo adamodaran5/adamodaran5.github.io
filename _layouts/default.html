@@ -805,14 +805,14 @@
     //      → Enable "Image search" → Copy the Search engine ID (cx)
     //      → Paste it as GOOGLE_CSE_ID below
     // ---------------------------------------------------------------
-    const GOOGLE_IMAGE_API_KEY = "YOUR_GOOGLE_IMAGE_API_KEY_HERE";
-    const GOOGLE_CSE_ID        = "YOUR_CUSTOM_SEARCH_ENGINE_ID_HERE";
+    const GOOGLE_IMAGE_API_KEY = "AIzaSyCFI5ByDgkagAOPiePjuiIot-Qjn_3pieI";
+    const GOOGLE_CSE_ID        = "0710eb5fea16047be";
 
-    if (GOOGLE_IMAGE_API_KEY === "YOUR_GOOGLE_IMAGE_API_KEY_HERE") return null;
+    if (GOOGLE_IMAGE_API_KEY === "AIzaSyCFI5ByDgkagAOPiePjuiIot-Qjn_3pieI") return null;
 
     try {
       const query = encodeURIComponent(`${title}${venue ? ' ' + venue : ''}`);
-      const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_IMAGE_API_KEY}&cx=${GOOGLE_CSE_ID}&searchType=image&q=${query}&num=1&safe=active`;
+      const url = `https://www.googleapis.com/customsearch/v1?key=${AIzaSyCFI5ByDgkagAOPiePjuiIot-Qjn_3pieI}&cx=${0710eb5fea16047be}&searchType=image&q=${query}&num=1&safe=active`;
       const res = await fetch(url);
       const data = await res.json();
       return data.items?.[0]?.link || null;
