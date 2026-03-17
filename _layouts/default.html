@@ -270,7 +270,7 @@
 
     .content-section h2 {
       font-size: 2.5rem;
-      margin-bottom: 0.2rem;
+      margin-bottom: 2rem;
       color: #f97316;
     }
 
@@ -710,7 +710,8 @@
 
       <!-- CARD 1 -->
       <a class="show-card" id="show-link-1" href="javascript:void(0)" target="_blank">
-        <div class="show-card-image-placeholder">🎤</div>
+        <div class="show-card-image-placeholder" id="show-placeholder-1">🎤</div>
+        <img class="show-card-image" id="show-img-1" style="display:none;" alt="Show image">
         <div class="show-card-body">
           <h3 id="show-name-1">Show Name Here</h3>
           <div class="show-card-meta">
@@ -722,7 +723,8 @@
 
       <!-- CARD 2 -->
       <a class="show-card" id="show-link-2" href="javascript:void(0)" target="_blank">
-        <div class="show-card-image-placeholder">🎤</div>
+        <div class="show-card-image-placeholder" id="show-placeholder-2">🎤</div>
+        <img class="show-card-image" id="show-img-2" style="display:none;" alt="Show image">
         <div class="show-card-body">
           <h3 id="show-name-2">Show Name Here</h3>
           <div class="show-card-meta">
@@ -734,7 +736,8 @@
 
       <!-- CARD 3 -->
       <a class="show-card" id="show-link-3" href="javascript:void(0)" target="_blank">
-        <div class="show-card-image-placeholder">🎤</div>
+        <div class="show-card-image-placeholder" id="show-placeholder-3">🎤</div>
+        <img class="show-card-image" id="show-img-3" style="display:none;" alt="Show image">
         <div class="show-card-body">
           <h3 id="show-name-3">Show Name Here</h3>
           <div class="show-card-meta">
@@ -746,7 +749,8 @@
 
       <!-- CARD 4 -->
       <a class="show-card" id="show-link-4" href="javascript:void(0)" target="_blank">
-        <div class="show-card-image-placeholder">🎤</div>
+        <div class="show-card-image-placeholder" id="show-placeholder-4">🎤</div>
+        <img class="show-card-image" id="show-img-4" style="display:none;" alt="Show image">
         <div class="show-card-body">
           <h3 id="show-name-4">Show Name Here</h3>
           <div class="show-card-meta">
@@ -770,12 +774,13 @@
   const API_KEY = "AIzaSyBCP6puMSBaWKkJ7zw55jiH1XWQpAjRhGY";
 
   function parseDescription(desc) {
-    const fields = { ticket: null };
+    const fields = { ticket: null, image: null };
     if (!desc) return fields;
     desc.split('\n').forEach(line => {
       const [key, ...rest] = line.split(':');
       const val = rest.join(':').trim();
       if (key.trim() === 'ticket') fields.ticket = val;
+      if (key.trim() === 'image')  fields.image  = val;
     });
     return fields;
   }
@@ -790,6 +795,31 @@
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' });
   }
 
+  async function fetchImageForEvent(title, venue) {
+    try {
+      const query = `${title}${venue ? ' ' + venue : ''} comedy show`;
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 200,
+          tools: [{ type: "web_search_20250305", name: "web_search" }],
+          messages: [{
+            role: "user",
+            content: `Search for: "${query}". Return ONLY a single direct image URL ending in .jpg, .jpeg, .png, or .webp that best represents this event or venue. Return nothing else — just the raw URL with no punctuation or explanation.`
+          }]
+        })
+      });
+      const data = await response.json();
+      const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+      const match = text.match(/https?:\/\/\S+\.(jpg|jpeg|png|webp)(\?\S*)?/i);
+      return match ? match[0] : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   async function fillShowCards() {
     const now = new Date().toISOString();
     const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&orderBy=startTime&singleEvents=true&maxResults=4`;
@@ -801,17 +831,20 @@
 
       data.items.forEach((event, i) => {
         const num = i + 1;
-        const linkEl  = document.getElementById(`show-link-${num}`);
-        const { ticket } = parseDescription(event.description);
-
-        const nameEl   = document.getElementById(`show-name-${num}`);
-        const dateEl   = document.getElementById(`show-date-${num}`);
-        const venueEl  = document.getElementById(`show-venue-${num}`);
+        const linkEl       = document.getElementById(`show-link-${num}`);
+        const nameEl       = document.getElementById(`show-name-${num}`);
+        const dateEl       = document.getElementById(`show-date-${num}`);
+        const venueEl      = document.getElementById(`show-venue-${num}`);
+        const imgEl        = document.getElementById(`show-img-${num}`);
+        const placeholderEl = document.getElementById(`show-placeholder-${num}`);
+        const { ticket, image } = parseDescription(event.description);
+        const venue = event.location || '';
 
         if (nameEl)  nameEl.textContent  = event.summary || 'TBA';
         if (dateEl)  dateEl.textContent  = formatDateTime(event.start.dateTime || event.start.date);
-        if (venueEl) venueEl.textContent = event.location || 'Venue TBA';
+        if (venueEl) venueEl.textContent = venue || 'Venue TBA';
 
+        // Ticket link
         if (linkEl && ticket) {
           linkEl.href = ticket;
           linkEl.style.cursor = 'pointer';
@@ -819,6 +852,22 @@
           linkEl.removeAttribute('href');
           linkEl.style.cursor = 'default';
           linkEl.style.pointerEvents = 'none';
+        }
+
+        // Image: manual override first, then auto-search by event title
+        const applyImage = (url) => {
+          if (imgEl && url) {
+            imgEl.src = url;
+            imgEl.style.display = 'block';
+            imgEl.onerror = () => { imgEl.style.display = 'none'; if (placeholderEl) placeholderEl.style.display = 'flex'; };
+            if (placeholderEl) placeholderEl.style.display = 'none';
+          }
+        };
+
+        if (image) {
+          applyImage(image);
+        } else {
+          fetchImageForEvent(event.summary, venue).then(applyImage);
         }
       });
 
