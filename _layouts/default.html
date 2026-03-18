@@ -789,8 +789,15 @@
     try {
       const res  = await fetch(url);
       const json = await res.json();
-      return json.items?.[0]?.link || null;
-    } catch (_) {
+      if (!res.ok) {
+        console.error(`[Image Search] API error for "${cleanTitle(rawTitle)}":`, json?.error?.message || res.status);
+        return null;
+      }
+      const link = json.items?.[0]?.link || null;
+      if (!link) console.warn(`[Image Search] No results for "${cleanTitle(rawTitle)}"`);
+      return link;
+    } catch (err) {
+      console.error(`[Image Search] Fetch failed for "${cleanTitle(rawTitle)}":`, err);
       return null;
     }
   }
