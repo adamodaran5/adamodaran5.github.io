@@ -778,17 +778,29 @@
     return (title || '').split('-')[0].trim();
   }
 
+  // Local venue image overrides — add more as needed
+  const VENUE_IMAGES = {
+    'elbo room': '/images/ELBOROOM.jpg',
+    'quinn':     '/images/QUINNS.jpg',
+  };
+
   async function fetchImage(rawTitle) {
     const query = cleanTitle(rawTitle);
+    const queryLower = query.toLowerCase();
+
+    // Check local overrides first
+    for (const [keyword, path] of Object.entries(VENUE_IMAGES)) {
+      if (queryLower.includes(keyword)) return path;
+    }
+
+    // Fall back to Wikimedia Commons — free, no API key, no referrer restrictions
     try {
-      // Search Wikimedia Commons — free, no API key, no referrer restrictions
       const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&format=json&origin=*&srlimit=5`;
       const searchRes  = await fetch(searchUrl);
       const searchJson = await searchRes.json();
       const results    = searchJson?.query?.search;
       if (!results || results.length === 0) return null;
 
-      // Try each result until we get a usable image URL
       for (const result of results) {
         const fileTitle = result.title;
         const imgUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
