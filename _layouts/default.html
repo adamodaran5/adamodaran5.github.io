@@ -773,31 +773,36 @@
   const CALENDAR_ID = "1c5514b69ae686552dd01662e31e1e921bb5670a74d9c9fafd990fcc14508ee6@group.calendar.google.com";
   const API_KEY     = "AIzaSyBCP6puMSBaWKkJ7zw55jiH1XWQpAjRhGY";
 
-  // ── Google Custom Search keys ──────────────────────────────────────
-  const GOOGLE_IMAGE_API_KEY = "AIzaSyC3IyO9eCuDxehXoyL7d0fEoqVxP4hGEiE";
-  const GOOGLE_CSE_ID        = "0710eb5fea16047be";
-  // ──────────────────────────────────────────────────────────────────
-
   // Strip everything after a dash: "Cobb's - Headliner" → "Cobb's"
   function cleanTitle(title) {
     return (title || '').split('-')[0].trim();
   }
 
   async function fetchImage(rawTitle) {
-    const q = encodeURIComponent(cleanTitle(rawTitle));
-    const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_IMAGE_API_KEY}&cx=${GOOGLE_CSE_ID}&searchType=image&q=${q}&num=1&safe=active`;
+    const query = cleanTitle(rawTitle);
     try {
-      const res  = await fetch(url);
-      const json = await res.json();
-      if (!res.ok) {
-        console.error(`[Image Search] API error for "${cleanTitle(rawTitle)}":`, json?.error?.message || res.status);
-        return null;
+      // Search Wikimedia Commons — free, no API key, no referrer restrictions
+      const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&format=json&origin=*&srlimit=5`;
+      const searchRes  = await fetch(searchUrl);
+      const searchJson = await searchRes.json();
+      const results    = searchJson?.query?.search;
+      if (!results || results.length === 0) return null;
+
+      // Try each result until we get a usable image URL
+      for (const result of results) {
+        const fileTitle = result.title;
+        const imgUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+        const imgRes  = await fetch(imgUrl);
+        const imgJson = await imgRes.json();
+        const pages   = imgJson?.query?.pages;
+        if (!pages) continue;
+        const page = Object.values(pages)[0];
+        const url  = page?.imageinfo?.[0]?.url;
+        if (url && /\.(jpg|jpeg|png|webp)/i.test(url)) return url;
       }
-      const link = json.items?.[0]?.link || null;
-      if (!link) console.warn(`[Image Search] No results for "${cleanTitle(rawTitle)}"`);
-      return link;
+      return null;
     } catch (err) {
-      console.error(`[Image Search] Fetch failed for "${cleanTitle(rawTitle)}":`, err);
+      console.error(`[Image Search] Failed for "${query}":`, err);
       return null;
     }
   }
