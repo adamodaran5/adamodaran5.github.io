@@ -778,32 +778,21 @@
   const GOOGLE_CSE_ID        = "0710eb5fea16047be";
   // ──────────────────────────────────────────────────────────────────
 
-  // Strip everything after a dash (e.g. "Cobb's Comedy Club - Headliner" → "Cobb's Comedy Club")
+  // Strip everything after a dash: "Cobb's - Headliner" → "Cobb's"
   function cleanTitle(title) {
     return (title || '').split('-')[0].trim();
   }
 
-  // Image fetch: try Google CSE first, fall back to LoremFlickr (always returns something)
-  async function fetchImage(rawTitle, venueName) {
-    const title = cleanTitle(rawTitle);
-    const searchTerm = venueName ? `${title} ${venueName.split(',')[0]}` : title;
-
-    // ── Attempt 1: Google Custom Search ───────────────────────────────
+  async function fetchImage(rawTitle) {
+    const q = encodeURIComponent(cleanTitle(rawTitle));
+    const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_IMAGE_API_KEY}&cx=${GOOGLE_CSE_ID}&searchType=image&q=${q}&num=1&safe=active`;
     try {
-      const q   = encodeURIComponent(searchTerm);
-      const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_IMAGE_API_KEY}&cx=${GOOGLE_CSE_ID}&searchType=image&q=${q}&num=1&safe=active`;
       const res  = await fetch(url);
-      if (res.ok) {
-        const json = await res.json();
-        const link = json.items?.[0]?.link;
-        if (link) return link;
-      }
-    } catch (_) {}
-
-    // ── Fallback: LoremFlickr — always returns a relevant photo ───────
-    // Uses the first two meaningful words of the search term as keywords
-    const keywords = searchTerm.replace(/[^a-zA-Z0-9 ]/g, '').trim().split(/\s+/).slice(0, 3).join(',');
-    return `https://loremflickr.com/600/400/${encodeURIComponent(keywords)}?lock=${Math.floor(Math.random()*1000)}`;
+      const json = await res.json();
+      return json.items?.[0]?.link || null;
+    } catch (_) {
+      return null;
+    }
   }
 
   function parseDescription(desc) {
@@ -891,7 +880,7 @@
       if (image) {
         applyImage(num, image);
       } else {
-        fetchImage(event.summary, venue).then(src => applyImage(num, src));
+        fetchImage(event.summary).then(src => applyImage(num, src));
       }
     });
   }
