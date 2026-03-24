@@ -802,11 +802,12 @@
 
   async function fetchImage(rawTitle) {
     const query = cleanTitle(rawTitle);
+    const rawLower = rawTitle.toLowerCase();
     const queryLower = query.toLowerCase();
 
     // Check local overrides first
     for (const [keyword, path] of Object.entries(VENUE_IMAGES)) {
-      if (queryLower.includes(keyword)) return path;
+      if (rawLower.includes(keyword)) return path;
     }
 
     // Fall back to Wikimedia Commons — free, no API key, no referrer restrictions
