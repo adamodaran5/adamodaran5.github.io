@@ -840,22 +840,37 @@ function parseDescription(desc) {
     const fields = { ticket: null, image: null };
     if (!desc) return fields;
 
-    // Google Calendar returns descriptions as HTML — strip tags first
-    const plain = desc
+    // Google Calendar returns descriptions as HTML.
+    // Split into lines FIRST (preserving line structure), then process each line.
+    const lines = desc
       .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&');
+      .replace(/<\/p\s*>/gi, '\n')
+      .split('\n');
 
-    plain.split('\n').forEach(line => {
-      const [key, ...rest] = line.split(':');
-      // If Google Calendar wrapped the value in an <a> tag, extract the href
-        const raw = rest.join(':').trim();
-        const hrefMatch = raw.match(/href="([^"]+)"/);
-        const val = hrefMatch ? hrefMatch[1] : raw.replace(/<[^>]+>/g, '').trim();
-      if (key.trim().toLowerCase() === 'ticket') fields.ticket = val;
-      if (key.trim().toLowerCase() === 'image')  fields.image  = val;
+    lines.forEach(rawLine => {
+      // Extract href from any <a> tag BEFORE stripping tags — this is the key step.
+      // Google Calendar auto-links URLs, so "ticket: https://..." becomes
+      // "ticket: <a href="https://...">https://...</a>" in the API response.
+      const hrefMatch = rawLine.match(/href="([^"]+)"/);
+
+      // Now strip all remaining HTML and decode entities to get clean text
+      const cleanLine = rawLine
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(code))
+        .trim();
+
+      // Find the first colon to split key from value
+      const colonIdx = cleanLine.indexOf(':');
+      if (colonIdx === -1) return;
+
+      const key = cleanLine.substring(0, colonIdx).trim().toLowerCase();
+      // Use the href if we found one, otherwise use the text after the colon
+      const val = hrefMatch ? hrefMatch[1] : cleanLine.substring(colonIdx + 1).trim();
+
+      if (key === 'ticket') fields.ticket = val;
+      if (key === 'image')  fields.image  = val;
     });
     return fields;
   }
@@ -880,20 +895,48 @@ function parseDescription(desc) {
     imgEl.src = src;
   }
 
+  // Returns true if this event is a "Show Spots" event
+  function isShowSpot(event) {
+    const haystack = [event.summary || '', event.description || ''].join(' ').toLowerCase();
+    return haystack.includes('show spot');
+  }
+
   // ── STEP 1: populate card text immediately ─────────────────────────
   // ── STEP 2: fetch images independently after text is shown ─────────
   async function fillShowCards() {
     const now = new Date().toISOString();
-    const calUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&orderBy=startTime&singleEvents=true&maxResults=4`;
+    // Fetch 20 so we have plenty to filter from after applying the Show Spots check
+    const calUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&orderBy=startTime&singleEvents=true&maxResults=20`;
 
-    let events = [];
+    let allEvents = [];
     try {
       const res  = await fetch(calUrl);
       const json = await res.json();
-      if (Array.isArray(json.items)) events = json.items;
+
+      // Surface API key / domain errors clearly in the console
+      if (json.error) {
+        console.error('[Shows] Google Calendar API error:', json.error.message,
+          '\n→ If this says "API key not valid" or "Referer blocked", go to',
+          'https://console.cloud.google.com → APIs & Services → Credentials',
+          '→ find your API key → add ajayd.com/* to allowed HTTP referrers.');
+        return;
+      }
+
+      if (Array.isArray(json.items)) allEvents = json.items;
+      console.log(`[Shows] Fetched ${allEvents.length} upcoming events from calendar.`);
     } catch (err) {
-      console.error('Calendar fetch failed:', err);
-      return; // placeholders stay visible — nothing to show
+      console.error('[Shows] Calendar fetch failed (network error):', err);
+      return;
+    }
+
+    // Filter to only "Show Spots" events, take first 4
+    const events = allEvents.filter(isShowSpot).slice(0, 4);
+    console.log(`[Shows] ${events.length} "Show Spots" event(s) found.`);
+
+    if (events.length === 0) {
+      console.warn('[Shows] No events with "Show Spots" in the title or description were found.',
+        'Make sure your Google Calendar events include "Show Spots" in the title or description.');
+      return;
     }
 
     // ── STEP 1: fill all text fields synchronously ──────────────────
@@ -906,18 +949,20 @@ function parseDescription(desc) {
       const { ticket } = parseDescription(event.description);
       const venue = event.location || '';
 
-      if (nameEl)  nameEl.textContent  = event.summary || 'TBA';
+      console.log(`[Shows] Card ${num}: "${event.summary}" | ticket: ${ticket || 'none'} | venue: ${venue || 'none'}`);
+
+      if (nameEl)  nameEl.textContent  = cleanTitle(event.summary) || 'TBA';
       if (dateEl)  dateEl.textContent  = formatDateTime(event.start.dateTime || event.start.date);
       if (venueEl) venueEl.textContent = venue || 'Venue TBA';
 
       if (linkEl) {
         if (ticket) {
-          linkEl.href             = ticket;
-          linkEl.style.cursor     = 'pointer';
+          linkEl.href                = ticket;
+          linkEl.style.cursor        = 'pointer';
           linkEl.style.pointerEvents = 'auto';
         } else {
           linkEl.removeAttribute('href');
-          linkEl.style.cursor     = 'default';
+          linkEl.style.cursor        = 'default';
           linkEl.style.pointerEvents = 'none';
         }
       }
@@ -927,7 +972,6 @@ function parseDescription(desc) {
     events.forEach((event, i) => {
       const num = i + 1;
       const { image } = parseDescription(event.description);
-      const venue = event.location || '';
 
       if (image) {
         applyImage(num, image);
