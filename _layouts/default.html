@@ -820,7 +820,7 @@
 
       for (const result of results) {
         const fileTitle = result.title;
-        const imgUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+        const imgUrl = https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
         const imgRes  = await fetch(imgUrl);
         const imgJson = await imgRes.json();
         const pages   = imgJson?.query?.pages;
@@ -835,19 +835,27 @@
       return null;
     }
   }
-
-  function parseDescription(desc) {
+        
+function parseDescription(desc) {
     const fields = { ticket: null, image: null };
     if (!desc) return fields;
-    desc.split('\n').forEach(line => {
+
+    // Google Calendar returns descriptions as HTML — strip tags first
+    const plain = desc
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&');
+
+    plain.split('\n').forEach(line => {
       const [key, ...rest] = line.split(':');
       const val = rest.join(':').trim();
-      if (key.trim() === 'ticket') fields.ticket = val;
-      if (key.trim() === 'image')  fields.image  = val;
+      if (key.trim().toLowerCase() === 'ticket') fields.ticket = val;
+      if (key.trim().toLowerCase() === 'image')  fields.image  = val;
     });
     return fields;
   }
-
   function formatDateTime(dateStr) {
     if (!dateStr) return 'TBA';
     const d = new Date(dateStr);
