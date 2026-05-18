@@ -820,7 +820,7 @@
 
       for (const result of results) {
         const fileTitle = result.title;
-        const imgUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+        const imgUrl = https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
         const imgRes  = await fetch(imgUrl);
         const imgJson = await imgRes.json();
         const pages   = imgJson?.query?.pages;
@@ -895,47 +895,33 @@ function parseDescription(desc) {
     imgEl.src = src;
   }
 
-  // Returns true if this event is a "Show Spots" event
-  function isShowSpot(event) {
-    const haystack = [event.summary || '', event.description || ''].join(' ').toLowerCase();
-    return haystack.includes('show spot');
-  }
-
   // ── STEP 1: populate card text immediately ─────────────────────────
   // ── STEP 2: fetch images independently after text is shown ─────────
   async function fillShowCards() {
     const now = new Date().toISOString();
-    // Fetch 20 so we have plenty to filter from after applying the Show Spots check
-    const calUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&orderBy=startTime&singleEvents=true&maxResults=20`;
+    const calUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&orderBy=startTime&singleEvents=true&maxResults=4`;
 
-    let allEvents = [];
+    let events = [];
     try {
       const res  = await fetch(calUrl);
       const json = await res.json();
 
-      // Surface API key / domain errors clearly in the console
       if (json.error) {
         console.error('[Shows] Google Calendar API error:', json.error.message,
-          '\n→ If this says "API key not valid" or "Referer blocked", go to',
-          'https://console.cloud.google.com → APIs & Services → Credentials',
+          '\n→ Go to https://console.cloud.google.com → APIs & Services → Credentials',
           '→ find your API key → add ajayd.com/* to allowed HTTP referrers.');
         return;
       }
 
-      if (Array.isArray(json.items)) allEvents = json.items;
-      console.log(`[Shows] Fetched ${allEvents.length} upcoming events from calendar.`);
+      if (Array.isArray(json.items)) events = json.items;
+      console.log(`[Shows] Fetched ${events.length} upcoming events from "Shows" calendar.`);
     } catch (err) {
       console.error('[Shows] Calendar fetch failed (network error):', err);
       return;
     }
 
-    // Filter to only "Show Spots" events, take first 4
-    const events = allEvents.filter(isShowSpot).slice(0, 4);
-    console.log(`[Shows] ${events.length} "Show Spots" event(s) found.`);
-
     if (events.length === 0) {
-      console.warn('[Shows] No events with "Show Spots" in the title or description were found.',
-        'Make sure your Google Calendar events include "Show Spots" in the title or description.');
+      console.warn('[Shows] No upcoming events found in the "Shows" calendar.');
       return;
     }
 
