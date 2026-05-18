@@ -850,7 +850,10 @@ function parseDescription(desc) {
 
     plain.split('\n').forEach(line => {
       const [key, ...rest] = line.split(':');
-      const val = rest.join(':').trim();
+      // If Google Calendar wrapped the value in an <a> tag, extract the href
+        const raw = rest.join(':').trim();
+        const hrefMatch = raw.match(/href="([^"]+)"/);
+        const val = hrefMatch ? hrefMatch[1] : raw.replace(/<[^>]+>/g, '').trim();
       if (key.trim().toLowerCase() === 'ticket') fields.ticket = val;
       if (key.trim().toLowerCase() === 'image')  fields.image  = val;
     });
