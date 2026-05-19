@@ -798,8 +798,8 @@
     'elbo room': '/images/ELBOROOM.jpg',
     'quinn':     '/images/QUINNS.jpg',
     'confessional': '/images/confessional.jpg',
-    'critical hit': '/images/criticalhit.jpg',
-    'bit city': '/images/bitcity.jpg'
+      'critical hit':'/images/criticalhit.jpg',
+      'bit city': '/images/bitcity.jpg'
   };
 
   async function fetchImage(rawTitle) {
@@ -822,7 +822,7 @@
 
       for (const result of results) {
         const fileTitle = result.title;
-        const imgUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+        const imgUrl = https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
         const imgRes  = await fetch(imgUrl);
         const imgJson = await imgRes.json();
         const pages   = imgJson?.query?.pages;
